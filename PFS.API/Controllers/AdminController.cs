@@ -17,12 +17,12 @@ namespace PFS.API.Controllers
             _authService = authService;
         }
 
-        [HttpPost("Login")]
-        public async Task<IActionResult> login(LoginDto loginDto)
-        {
-            var result = await _authService.AdminLoginAsync(loginDto);
-            return Ok(result);
-        }
+        //[HttpPost("Login")]
+        //public async Task<IActionResult> login(LoginDto loginDto)
+        //{
+        //    var result = await _authService.LoginAsync(loginDto);
+        //    return Ok(result);
+        //}
 
         [Authorize(Roles = "Admin")]
         [HttpGet("test-admin")]

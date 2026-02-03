@@ -7,14 +7,10 @@ using PFS.Application.Interface;
 using PFS.Domain.Entites;
 using PFS.Domain.Enums;
 using PFS.Infrastructure.Data;
-using System;
-using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace PFS.Infrastructure.Services
 {
@@ -33,30 +29,37 @@ namespace PFS.Infrastructure.Services
 
         public async Task RegisterAsync(SignUpDto dto)
         {
-            var exisiting = await _context.Users.FirstOrDefaultAsync(s => s.Username == dto.Username);
+            var val = validation(dto);
+            var exisiting = await _context.Users.FirstOrDefaultAsync(s => s.Username == val.Username);
             if (exisiting != null)
-                throw new AlreadyExisitException("This UserName is Already Exist !");
+                throw new AlreadyExisitException("This UserName is Already Exist!");
+
+            
 
             var user = new User
             {
                 Id = Guid.NewGuid(),
-                Username = dto.Username,
-                Email = dto.Email,
-                PhoneNo = dto.PhoneNo,
-                PasswordHash = HashPassword(dto.Password),
+                Username = val.Username,
+                Email = val.Email,
+                PhoneNo = val.PhoneNo,
+                PasswordHash = HashPassword(val.Password),
                 Role = UserRole.User
             };
+
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
         }
+
         public async Task<LoginResponseDto> LoginAsync(LoginDto dto)
         {
-                var user = await _context.Users.FirstOrDefaultAsync(x => x.Username == dto.Username && x.Role == UserRole.User);
-                if (user == null || !VerifyPassword(dto.Password, user.PasswordHash))
-                    throw new NotFoundException("Invalid Credintials");
+            var user = await _context.Users
+                .FirstOrDefaultAsync(x => x.Username == dto.Username);
 
-                if (user.IsBlocked)
-                    throw new UnAuthorizedException("User is Blocked");
+            if (user == null || !VerifyPassword(dto.Password, user.PasswordHash))
+                throw new NotFoundException("Invalid Credentials");
+
+            if (user.IsBlocked)
+                throw new UnAuthorizedException("User is Blocked");
 
             var refreshToken = _tokenService.CreateRefreshToken();
 
@@ -66,37 +69,13 @@ namespace PFS.Infrastructure.Services
             await _context.SaveChangesAsync();
 
             return new LoginResponseDto
-                {
-                    Username = user.Username,
-                    Role = user.Role.ToString(),
-                    Token = _tokenService.CreateToken(user),
-                    RefreshToken = refreshToken
-            };
-        }
-        public async Task<LoginResponseDto> AdminLoginAsync(LoginDto dto)
-        {
-            var admin = await _context.Users
-                .FirstOrDefaultAsync(x => x.Username == dto.Username && x.Role == UserRole.Admin);
-
-            if (admin == null || !VerifyPassword(dto.Password, admin.PasswordHash))
-                throw new NotFoundException("Invalid Credentials");
-
-            var refreshToken = _tokenService.CreateRefreshToken();
-
-            admin.RefreshToken = refreshToken;
-            admin.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
-
-            await _context.SaveChangesAsync();
-
-            return new LoginResponseDto
             {
-                Username = admin.Username,
-                Role = admin.Role.ToString(),
-                Token = _tokenService.CreateToken(admin),
+                Username = user.Username,
+                Role = user.Role.ToString(),
+                Token = _tokenService.CreateToken(user),
                 RefreshToken = refreshToken
             };
         }
-
         public async Task<LoginResponseDto> RefreshTokenAsync(RefreshTokenDto dto)
         {
             var principal = GetPrincipalFromExpiredToken(dto.Token);
@@ -105,8 +84,11 @@ namespace PFS.Infrastructure.Services
 
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Username == username);
 
+            if (user.IsBlocked)
+                throw new UnAuthorizedException("Sorry! User is Blocked");
+
             if (user == null || user.RefreshToken != dto.RefreshToken || user.RefreshTokenExpiryTime <= DateTime.UtcNow)
-                throw new Exception("Invalid refresh token");
+                throw new UnAuthorizedException("Invalid refresh token");
 
             var newAccessToken = _tokenService.CreateToken(user);
             var newRefreshToken = _tokenService.CreateRefreshToken();
@@ -127,21 +109,27 @@ namespace PFS.Infrastructure.Services
 
         private ClaimsPrincipal GetPrincipalFromExpiredToken(string token)
         {
+            var key = _config["Jwt:Key"]
+                ?? throw new Exception("JWT Key not found in configuration");
+
             var tokenValidationParameters = new TokenValidationParameters
             {
                 ValidateAudience = false,
                 ValidateIssuer = false,
                 ValidateIssuerSigningKey = true,
                 IssuerSigningKey = new SymmetricSecurityKey(
-                    Encoding.UTF8.GetBytes(_config["Jwt:Key"]!)),
+                    Encoding.UTF8.GetBytes(key)),
                 ValidateLifetime = false
             };
 
             var tokenHandler = new JwtSecurityTokenHandler();
             var principal = tokenHandler.ValidateToken(token, tokenValidationParameters, out SecurityToken securityToken);
 
-            if (securityToken is not JwtSecurityToken jwtSecurityToken)
+            if (securityToken is not JwtSecurityToken jwtSecurityToken ||
+                !jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
+            {
                 throw new SecurityTokenException("Invalid token");
+            }
 
             return principal;
         }
@@ -152,6 +140,18 @@ namespace PFS.Infrastructure.Services
             var bytes = sha.ComputeHash(Encoding.UTF8.GetBytes(password));
             return Convert.ToBase64String(bytes);
         }
+
+        private SignUpDto validation(SignUpDto dto)
+        {
+            return new SignUpDto
+            {
+                Username = dto.Username?.Trim() ?? string.Empty,
+                Password = dto.Password?.Trim() ?? string.Empty,
+                Email = dto.Email?.Trim().ToLower() ?? string.Empty,
+                PhoneNo = dto.PhoneNo?.Trim() ?? string.Empty
+            };
+        }
+
         private bool VerifyPassword(string password, string hash)
         {
             return HashPassword(password) == hash;

@@ -1,5 +1,5 @@
 ﻿using FluentValidation;
-using FluentValidation.AspNetCore;
+
 using PFS.Application.DTOs.Auth;
 using System;
 using System.Collections.Generic;

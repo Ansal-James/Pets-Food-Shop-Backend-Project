@@ -11,7 +11,7 @@ namespace PFS.Application.Interface
     {
         Task RegisterAsync(SignUpDto dto);
         Task<LoginResponseDto> LoginAsync(LoginDto dto);
-        Task<LoginResponseDto> AdminLoginAsync(LoginDto dto);
+        //Task<LoginResponseDto> AdminLoginAsync(LoginDto dto);
         Task<LoginResponseDto> RefreshTokenAsync(RefreshTokenDto dto);
     }
 }

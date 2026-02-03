@@ -21,7 +21,7 @@ namespace PFS.Application.Validators
 
             RuleFor(x => x.PhoneNo)
                 .NotEmpty().WithMessage("Phone number is required")
-                .Length(10).WithMessage("Phone number must be 10 digits");
+                .Matches(@"^\d{10}$").WithMessage("Phone number must be exactly 10 digits");
 
             RuleFor(x => x.Password)
                 .NotEmpty().WithMessage("Password is required")

@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using PFS.API.Middlewares;
 using PFS.Application.Interface;
+using PFS.Application.Validators;
 using PFS.Infrastructure.Data;
 using PFS.Infrastructure.Services;
 using System.Text;
@@ -20,27 +21,27 @@ builder.Services.AddAuthentication(options =>
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
 })
-
 .AddJwtBearer(options =>
 {
+    var key = jwtSettings["Key"]
+        ?? throw new Exception("JWT Key is missing in appsettings.json");
+
     options.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuer = true,
         ValidateAudience = true,
-        ValidateLifetime = true,              
-        ValidateIssuerSigningKey = true,      
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
 
         ValidIssuer = jwtSettings["Issuer"],
         ValidAudience = jwtSettings["Audience"],
 
         IssuerSigningKey = new SymmetricSecurityKey(
-            Encoding.UTF8.GetBytes(jwtSettings["Key"]))
+            Encoding.UTF8.GetBytes(key))
     };
 });
-// Add services to the container.
 
-
-
+// Swagger with JWT support
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new() { Title = "ECommerce API", Version = "v1" });
@@ -71,22 +72,20 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-
-builder.Services.AddControllers()
-    .AddFluentValidation();
-
-builder.Services.AddValidatorsFromAssemblyContaining<Program>();
-
-
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+
+builder.Services.AddFluentValidationAutoValidation();
+builder.Services.AddValidatorsFromAssemblyContaining<SignUpDtoValidator>();
+builder.Services.AddValidatorsFromAssemblyContaining<LoginDtoValidator>();
+
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
