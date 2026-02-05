@@ -135,9 +135,16 @@ namespace PFS.Infrastructure.Services
         }
         public async Task<List<ProductResponseDto>> GetProductsByCategoryAsync(Guid categoryId)
         {
+            var categoryExists = await _context.Categories
+                .AnyAsync(c => c.Id == categoryId);
+
+            if (!categoryExists)
+                throw new NotFoundException("Category not found");
+
             var products = await _context.Products
-                .Include(p => p.Category)
-                .Where(p => p.CategoryId == categoryId && p.IsActive)
+                .AsNoTracking()
+                .Include(p => p.Category) 
+                .Where(p => p.CategoryId == categoryId)
                 .ToListAsync();
 
             return products.Select(MapToResponseDto).ToList();
