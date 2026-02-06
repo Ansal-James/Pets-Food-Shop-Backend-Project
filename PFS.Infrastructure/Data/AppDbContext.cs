@@ -10,6 +10,8 @@ namespace PFS.Infrastructure.Data
         public DbSet<User> Users => Set<User>();
         public DbSet<Category> Categories => Set<Category>();
         public DbSet<Product> Products => Set<Product>();
+        public DbSet<Wishlist> Wishlists => Set<Wishlist>();
+        public DbSet<WishlistItem> WishlistItems => Set<WishlistItem>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
