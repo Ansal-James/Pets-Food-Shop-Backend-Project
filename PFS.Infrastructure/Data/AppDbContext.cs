@@ -12,6 +12,8 @@ namespace PFS.Infrastructure.Data
         public DbSet<Product> Products => Set<Product>();
         public DbSet<Wishlist> Wishlists => Set<Wishlist>();
         public DbSet<WishlistItem> WishlistItems => Set<WishlistItem>();
+        public DbSet<Cart> Carts => Set<Cart>();
+        public DbSet<CartItem> CartItems => Set<CartItem>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
