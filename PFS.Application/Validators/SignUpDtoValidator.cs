@@ -17,7 +17,8 @@ namespace PFS.Application.Validators
 
             RuleFor(x => x.Email)
                 .NotEmpty().WithMessage("Email is required")
-                .EmailAddress().WithMessage("Invalid email format");
+                .Matches(@"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+                .WithMessage("Invalid email format");
 
             RuleFor(x => x.PhoneNo)
                 .NotEmpty().WithMessage("Phone number is required")

@@ -32,6 +32,7 @@ namespace PFS.API.Middlewares
                     NotFoundException => HttpStatusCode.NotFound,
                     AlreadyExisitException => HttpStatusCode.BadRequest,
                     UnAuthorizedException => HttpStatusCode.Unauthorized,
+                    BadRequestException => HttpStatusCode.BadRequest,
                     _ => HttpStatusCode.InternalServerError
                 };
 

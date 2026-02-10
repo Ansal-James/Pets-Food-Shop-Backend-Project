@@ -21,6 +21,16 @@ namespace PFS.Infrastructure.Data
         {
             base.OnModelCreating(modelBuilder);
 
+            // Order
+            modelBuilder.Entity<Order>()
+                .Property(o => o.TotalAmount)
+                .HasPrecision(18, 2);
+
+            // OrderItem
+            modelBuilder.Entity<OrderItem>()
+                .Property(oi => oi.Price)
+                .HasPrecision(18, 2);
+
             // Product price precision
             modelBuilder.Entity<Product>()
                 .Property(p => p.Price)
