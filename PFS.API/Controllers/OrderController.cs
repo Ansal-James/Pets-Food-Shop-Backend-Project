@@ -55,14 +55,14 @@ namespace PFS.API.Controllers
         }
 
         // Update order status (Admin)
-        [Authorize(Roles = "Admin")]
-        [HttpPut("admin/{orderId:guid}/status")]
-        public async Task<IActionResult> UpdateOrderStatus(
-            Guid orderId,
-            [FromQuery] string status)
-        {
-            await _orderService.UpdateOrderStatusAsync(orderId, status);
-            return Ok(new { message = "Order status updated successfully" });
-        }
+        //[Authorize(Roles = "Admin")]
+        //[HttpPut("admin/{orderId:guid}/status")]
+        //public async Task<IActionResult> UpdateOrderStatus(
+        //    Guid orderId,
+        //    [FromQuery] string status)
+        //{
+        //    await _orderService.UpdateOrderStatusAsync(orderId, status);
+        //    return Ok(new { message = "Order status updated successfully" });
+        //}
     }
 }

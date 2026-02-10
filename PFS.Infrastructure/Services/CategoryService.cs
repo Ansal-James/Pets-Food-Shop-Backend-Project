@@ -47,7 +47,7 @@ namespace PFS.Infrastructure.Services
             if (category == null)
                 throw new NotFoundException("Category not found");
 
-            category.IsActive = false;
+            _context.Categories.Remove(category);
             await _context.SaveChangesAsync();
         }
 

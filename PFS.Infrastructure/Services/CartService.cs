@@ -75,7 +75,8 @@ namespace PFS.Infrastructure.Services
                 {
                     Id = Guid.NewGuid(),
                     UserId = userId,
-                    CreatedAt = DateTime.UtcNow
+                    CreatedAt = DateTime.UtcNow,
+                    CartItems = new List<CartItem>()
                 };
                 _context.Carts.Add(cart);
             }
@@ -94,6 +95,7 @@ namespace PFS.Infrastructure.Services
                 {
                     Id = Guid.NewGuid(),
                     ProductId = dto.ProductId,
+                    CartId = cart.Id,
                     Quantity = dto.Quantity
                 });
             }

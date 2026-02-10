@@ -10,14 +10,12 @@ using PFS.Infrastructure.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// =======================
 // AUTHENTICATION (JWT)
-// =======================
+
 builder.Services.AddJwtAuthentication(builder.Configuration);
 
-// =======================
 // SWAGGER CONFIGURATION
-// =======================
+
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new() { Title = "ECommerce API", Version = "v1" });
@@ -48,23 +46,20 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-// =======================
 // CONTROLLERS
-// =======================
+
 builder.Services.AddControllers();
 
-// =======================
 // FLUENT VALIDATION
-// =======================
+
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddValidatorsFromAssemblyContaining<SignUpDtoValidator>();
 builder.Services.AddValidatorsFromAssemblyContaining<LoginDtoValidator>();
 
 builder.Services.AddEndpointsApiExplorer();
 
-// =======================
 // DEPENDENCY INJECTION
-// =======================
+
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
@@ -73,9 +68,8 @@ builder.Services.AddScoped<IWishlistService, WishlistService>();
 builder.Services.AddScoped<ICartService, CartService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 
-// =======================
 // DATABASE
-// =======================
+
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(
         builder.Configuration.GetConnectionString("DefaultConnection")
@@ -84,9 +78,8 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 var app = builder.Build();
 
-// =======================
 // MIDDLEWARE PIPELINE
-// =======================
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
