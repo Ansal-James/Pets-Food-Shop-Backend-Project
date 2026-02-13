@@ -27,9 +27,9 @@ namespace PFS.Infrastructure.Services
 
             if (product == null)
                 throw new NotFoundException("Product not found");
-            
+
+            // Get or create wishlist (NO Include)
             var wishlist = await _context.Wishlists
-                .Include(w => w.WishlistItems)
                 .FirstOrDefaultAsync(w => w.UserId == userId);
 
             if (wishlist == null)
@@ -42,22 +42,28 @@ namespace PFS.Infrastructure.Services
                 };
 
                 _context.Wishlists.Add(wishlist);
+                await _context.SaveChangesAsync(); // ensure WishlistId
             }
 
-            var alreadyAdded = wishlist.WishlistItems
-                .Any(wi => wi.ProductId == productId);
+            //  ALWAYS query WishlistItems directly
+            var alreadyAdded = await _context.WishlistItems
+                .AnyAsync(wi =>
+                    wi.WishlistId == wishlist.Id &&
+                    wi.ProductId == productId);
 
             if (alreadyAdded)
                 throw new AlreadyExisitException("Product already in wishlist");
 
-            wishlist.WishlistItems.Add(new WishlistItem
+            _context.WishlistItems.Add(new WishlistItem
             {
                 Id = Guid.NewGuid(),
+                WishlistId = wishlist.Id,
                 ProductId = productId
             });
 
             await _context.SaveChangesAsync();
         }
+
 
         public async Task<List<WishlistItemResponseDto>> GetWishlistAsync(Guid userId)
         {
@@ -83,21 +89,22 @@ namespace PFS.Infrastructure.Services
 
         public async Task RemoveFromWishlistAsync(Guid userId, Guid productId)
         {
-            var wishlist = await _context.Wishlists
-                .Include(w => w.WishlistItems)
-                .FirstOrDefaultAsync(w => w.UserId == userId);
+            var wishlistItem = await _context.WishlistItems
+                .FirstOrDefaultAsync(wi =>
+                    wi.ProductId == productId &&
+                    _context.Wishlists.Any(w =>
+                        w.Id == wi.WishlistId &&
+                        w.UserId == userId));
 
-            if (wishlist == null)
-                throw new NotFoundException("Wishlist not found");
-
-            var item = wishlist.WishlistItems
-                .FirstOrDefault(wi => wi.ProductId == productId);
-
-            if (item == null)
+            if (wishlistItem == null)
                 throw new NotFoundException("Product not found in wishlist");
 
-            _context.WishlistItems.Remove(item);
+            _context.WishlistItems.Remove(wishlistItem);
             await _context.SaveChangesAsync();
+
+            //  Important for delete → add scenarios
+            _context.ChangeTracker.Clear();
         }
+
     }
 }
