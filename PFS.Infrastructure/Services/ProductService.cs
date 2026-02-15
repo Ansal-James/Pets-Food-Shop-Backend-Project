@@ -116,7 +116,7 @@ namespace PFS.Infrastructure.Services
         {
             var products = await _context.Products
                 .Include(p => p.Category)
-                .Where(p => p.IsActive)
+                .Where(p => p.IsActive && p.Category.IsActive)
                 .OrderByDescending(p => p.CreatedAt)
                 .ToListAsync();
 
@@ -127,7 +127,7 @@ namespace PFS.Infrastructure.Services
             var product = await _context.Products
                 .AsNoTracking()
                 .Include(p => p.Category)
-                .FirstOrDefaultAsync(p => p.Id == id && p.IsActive);
+                .FirstOrDefaultAsync(p => p.Id == id && p.IsActive && p.Category.IsActive);
             if (product == null)
                 throw new NotFoundException("Product not found");
 
@@ -136,15 +136,15 @@ namespace PFS.Infrastructure.Services
         public async Task<List<ProductResponseDto>> GetProductsByCategoryAsync(Guid categoryId)
         {
             var categoryExists = await _context.Categories
-                .AnyAsync(c => c.Id == categoryId);
+                .AnyAsync(c => c.Id == categoryId && c.IsActive);
 
             if (!categoryExists)
-                throw new NotFoundException("Category not found");
+                throw new NotFoundException("Category not found or InActive !");
 
             var products = await _context.Products
                 .AsNoTracking()
                 .Include(p => p.Category) 
-                .Where(p => p.CategoryId == categoryId)
+                .Where(p => p.CategoryId == categoryId && p.IsActive && p.Category.IsActive)
                 .ToListAsync();
 
             return products.Select(MapToResponseDto).ToList();
@@ -153,9 +153,8 @@ namespace PFS.Infrastructure.Services
         {
             var products = await _context.Products
                 .Include(p => p.Category)
-                .Where(p =>
-                    p.IsActive &&
-                    p.Name.ToLower().Contains(searchTerm.ToLower()))
+                .Where(p => p.IsActive && p.Category.IsActive && p.Name.ToLower()
+                .Contains(searchTerm.ToLower()))
                 .ToListAsync();
 
             return products.Select(MapToResponseDto).ToList();
@@ -167,7 +166,7 @@ namespace PFS.Infrastructure.Services
 
             var products = await _context.Products
                 .Include(p => p.Category)
-                .Where(p => p.IsActive)
+                .Where(p => p.IsActive && p.Category.IsActive)
                 .Skip((pageNo - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();

@@ -4,6 +4,9 @@ using Microsoft.AspNetCore.Mvc;
 using PFS.API.Helpers;
 using PFS.Application.Interface;
 using System.Security.Claims;
+using PFS.Application.Resources;
+using PFS.Application.Responses;
+using PFS.Application.DTOs.Wishlist;
 
 namespace PFS.API.Controllers
 {
@@ -24,7 +27,7 @@ namespace PFS.API.Controllers
         {
             var userId = ClaimsHelper.GetUserId(User);
             await _wishlistService.AddToWishlistAsync(userId, productId);
-            return Ok(new { message = "Product added to wishlist" });
+            return Ok(ApiResponse<string>.SuccessResponse(SuccessApiMessages.AddWishList));
         }
 
         [HttpGet]
@@ -32,7 +35,7 @@ namespace PFS.API.Controllers
         {
             var userId = ClaimsHelper.GetUserId(User);
             var result = await _wishlistService.GetWishlistAsync(userId);
-            return Ok(result);
+            return Ok(ApiResponse<List<WishlistItemResponseDto>>.SuccessResponse(SuccessApiMessages.FetchWishlist,result));
         }
 
         [HttpDelete("{productId:guid}")]
@@ -40,7 +43,7 @@ namespace PFS.API.Controllers
         {
             var userId = ClaimsHelper.GetUserId(User);
             await _wishlistService.RemoveFromWishlistAsync(userId, productId);
-            return Ok(new { message = "Product removed from wishlist" });
+            return Ok(ApiResponse<string>.SuccessResponse(SuccessApiMessages.RemoveWishlist));
         }
     }
 }

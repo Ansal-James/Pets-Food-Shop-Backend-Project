@@ -1,4 +1,5 @@
 ﻿using PFS.Application.Execeptions;
+using PFS.Application.Responses;
 using System.Net;
 using System.Text.Json;
 
@@ -38,11 +39,8 @@ namespace PFS.API.Middlewares
 
                 context.Response.StatusCode = (int)statusCode;
 
-                var response = new
-                {
-                    success = false,
-                    message = ex.Message
-                };
+                var response = ApiResponse<string>.FailureResponse(ex.Message);
+
 
                 await context.Response.WriteAsync(JsonSerializer.Serialize(response));
             }

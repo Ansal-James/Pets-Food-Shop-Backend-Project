@@ -14,6 +14,7 @@ namespace PFS.Application.Interface
         Task<CategoryResponseDto> UpdateCategoryAsync(Guid id, UpdateCategoryDto dto);
 
         Task DeleteCategoryAsync(Guid id);
+        Task SoftDeleteCategoryAsync(Guid id);
 
         Task<List<CategoryResponseDto>> GetAllCategoriesAsync();
 

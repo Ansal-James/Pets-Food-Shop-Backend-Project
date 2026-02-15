@@ -51,6 +51,16 @@ namespace PFS.Infrastructure.Services
             await _context.SaveChangesAsync();
         }
 
+        public async Task SoftDeleteCategoryAsync(Guid id)
+        {
+            var category = await _context.Categories.FirstOrDefaultAsync(c => c.Id == id);
+
+            if (category == null)
+                throw new NotFoundException("Category not found");
+
+            category.IsActive = false;
+            await _context.SaveChangesAsync();
+        }
         public async Task<List<CategoryResponseDto>> GetAllCategoriesAsync()
         {
             var categories = await _context.Categories

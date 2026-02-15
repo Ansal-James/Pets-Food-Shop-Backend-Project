@@ -37,10 +37,10 @@ namespace PFS.API.Extensions
                         Encoding.UTF8.GetBytes(key))
                 };
 
-                // 🔥 CUSTOM 401 / 403 HANDLING (THIS IS WHAT YOU ASKED FOR)
+                // CUSTOM 401 / 403 HANDLING (THIS IS WHAT YOU ASKED FOR)
                 options.Events = new JwtBearerEvents
                 {
-                    // ❌ No token / invalid token
+                    // No token / invalid token
                     OnChallenge = context =>
                     {
                         context.HandleResponse();

@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Mvc;
 using PFS.API.Helpers;
 using PFS.Application.DTOs.Order;
 using PFS.Application.Interface;
+using PFS.Application.Resources;
+using PFS.Application.Responses;
 
 namespace PFS.API.Controllers
 {
@@ -24,7 +26,7 @@ namespace PFS.API.Controllers
         {
             var userId = ClaimsHelper.GetUserId(User);
             var result = await _orderService.CreateOrderAsync(userId, dto);
-            return Ok(result);
+            return Ok(ApiResponse<OrderResponseDto>.SuccessResponse(SuccessApiMessages.PlaceOrder));
         }
 
         // Get all orders of logged-in user
@@ -33,7 +35,7 @@ namespace PFS.API.Controllers
         {
             var userId = ClaimsHelper.GetUserId(User);
             var result = await _orderService.GetUserOrdersAsync(userId);
-            return Ok(result);
+            return Ok(ApiResponse<List<OrderResponseDto>>.SuccessResponse(SuccessApiMessages.OrderDetails, result));
         }
 
         // Get single order of logged-in user
@@ -42,7 +44,7 @@ namespace PFS.API.Controllers
         {
             var userId = ClaimsHelper.GetUserId(User);
             var result = await _orderService.GetUserOrderByIdAsync(userId, orderId);
-            return Ok(result);
+            return Ok(ApiResponse<OrderResponseDto>.SuccessResponse(SuccessApiMessages.OrderDetails, result));
         }
 
         // Get all orders (Admin)
@@ -51,7 +53,7 @@ namespace PFS.API.Controllers
         public async Task<IActionResult> GetAllOrders()
         {
             var result = await _orderService.GetAllOrdersAsync();
-            return Ok(result);
+            return Ok(ApiResponse<OrderResponseDto>.SuccessResponse(SuccessApiMessages.FetchUserOrders));
         }
 
         // Update order status (Admin)

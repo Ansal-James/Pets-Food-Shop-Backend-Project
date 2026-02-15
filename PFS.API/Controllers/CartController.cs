@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Mvc;
 using PFS.API.Helpers;
 using PFS.Application.DTOs.Cart;
 using PFS.Application.Interface;
+using PFS.Application.Responses;
+using PFS.Application.Resources;
 
 namespace PFS.API.Controllers
 {
@@ -22,28 +24,28 @@ namespace PFS.API.Controllers
         {
             var userId = ClaimsHelper.GetUserId(User);
             await _cartService.AddToCartAsync(userId, dto);
-            return Ok(new { message = "Product added to cart" });
+            return Ok(ApiResponse<string>.SuccessResponse(SuccessApiMessages.AddedToCart));
         }
         [HttpPut("{cartItemId:guid}")]
         public async Task<IActionResult> UpdateCartItem(Guid cartItemId, [FromBody] UpdateCartItemDto dto)
         {
             var userId = ClaimsHelper.GetUserId(User);
             await _cartService.UpdateCartItemAsync(userId, cartItemId, dto);
-            return Ok(new { message = "Cart item updated successfully" });
+            return Ok(ApiResponse<string>.SuccessResponse(SuccessApiMessages.UpdatedCart));
         }
         [HttpDelete("{cartItemId:guid}")]
         public async Task<IActionResult> RemoveCartItem(Guid cartItemId)
         {
             var userId = ClaimsHelper.GetUserId(User);
             await _cartService.RemoveCartItemAsync(userId, cartItemId);
-            return Ok(new { message = "Cart item removed successfully" });
+            return Ok(ApiResponse<string>.SuccessResponse(SuccessApiMessages.RemoveCartItem));
         }
         [HttpGet]
         public async Task<IActionResult> GetCart()
         {
             var userId = ClaimsHelper.GetUserId(User);
             var result = await _cartService.GetCartAsync(userId);
-            return Ok(result);
+            return Ok(ApiResponse<CartResponseDto>.SuccessResponse(SuccessApiMessages.CartFeched,result));
         }
 
     }
